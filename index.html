@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Malla Ingeniería Civil Industrial</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .creditos {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    .fila {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .semestre {
+      flex: 1;
+      margin: 0 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .semestre h2 {
+      font-size: 1.1em;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .ramo {
+      padding: 6px;
+      border-radius: 6px;
+      margin: 5px 0;
+      background: #eee;
+      cursor: pointer;
+    }
+    .aprobado {
+      background-color: #a2d5f2 !important; /* celeste */
+    }
+    .bloqueado {
+      background-color: #f2a2b6 !important; /* rosado */
+      cursor: not-allowed;
+    }
+    .tooltip {
+      position: relative;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      background: black;
+      color: white;
+      padding: 4px;
+      font-size: 0.8em;
+      top: 100%;
+      left: 0;
+      white-space: pre-line;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+<h1>Malla Ingeniería Civil Industrial</h1>
+<div class="creditos">Créditos aprobados: <span id="creditos">0</span></div>
+<div id="malla"></div>
+<script>
+const cursos = [
+  { id: "mat101", nombre: "Álgebra y Geometría", semestre: 1, creditos: 6, prerreq: [] },
+  { id: "mat102", nombre: "Cálculo I", semestre: 1, creditos: 6, prerreq: [] },
+  { id: "fi101", nombre: "Introducción a la Ingeniería", semestre: 1, creditos: 6, prerreq: [] },
+  { id: "cs101", nombre: "Computación", semestre: 1, creditos: 6, prerreq: [] },
+
+  { id: "mat201", nombre: "Cálculo II", semestre: 2, creditos: 6, prerreq: ["mat102"] },
+  { id: "fis101", nombre: "Física I", semestre: 2, creditos: 6, prerreq: ["mat102"] },
+  { id: "quim101", nombre: "Química", semestre: 2, creditos: 6, prerreq: [] },
+  { id: "fi102", nombre: "Comunicación efectiva", semestre: 2, creditos: 6, prerreq: [] },
+
+  { id: "mat301", nombre: "Cálculo III", semestre: 3, creditos: 6, prerreq: ["mat201"] },
+  { id: "fis201", nombre: "Física II", semestre: 3, creditos: 6, prerreq: ["fis101"] },
+  { id: "eco101", nombre: "Microeconomía", semestre: 3, creditos: 6, prerreq: [] },
+  { id: "fi103", nombre: "Electromagnetismo", semestre: 3, creditos: 6, prerreq: ["fis101"] },
+
+  { id: "mod401", nombre: "Módulo Interdisciplinario", semestre: 4, creditos: 6, prerreq: ["mat301"] },
+  { id: "eco201", nombre: "Macroeconomía", semestre: 4, creditos: 6, prerreq: ["eco101"] },
+  { id: "est101", nombre: "Estadística", semestre: 4, creditos: 6, prerreq: ["mat201"] },
+  { id: "fi104", nombre: "Taller de Liderazgo", semestre: 4, creditos: 6, prerreq: [] },
+
+  { id: "in501", nombre: "Investigación Operativa", semestre: 5, creditos: 6, prerreq: ["est101"] },
+  { id: "in502", nombre: "Finanzas I", semestre: 5, creditos: 6, prerreq: ["eco201"] },
+  { id: "in503", nombre: "Contabilidad", semestre: 5, creditos: 6, prerreq: [] },
+  { id: "in504", nombre: "Costos", semestre: 5, creditos: 6, prerreq: ["in503"] },
+
+  { id: "in601", nombre: "Planificación", semestre: 6, creditos: 6, prerreq: ["in501"] },
+  { id: "in602", nombre: "Gestión de Proyectos", semestre: 6, creditos: 6, prerreq: [] },
+  { id: "in603", nombre: "Simulación", semestre: 6, creditos: 6, prerreq: ["est101"] },
+  { id: "in604", nombre: "Producción", semestre: 6, creditos: 6, prerreq: ["in504"] },
+
+  { id: "in701", nombre: "Evaluación de Proyectos", semestre: 7, creditos: 6, prerreq: ["in502"] },
+  { id: "in702", nombre: "Ingeniería Económica", semestre: 7, creditos: 6, prerreq: ["in504"] },
+  { id: "in703", nombre: "Calidad", semestre: 7, creditos: 6, prerreq: [] },
+  { id: "in704", nombre: "Logística", semestre: 7, creditos: 6, prerreq: ["in604"] },
+
+  { id: "in801", nombre: "Gestión Estratégica", semestre: 8, creditos: 6, prerreq: ["in702"] },
+  { id: "in802", nombre: "Comportamiento Organizacional", semestre: 8, creditos: 6, prerreq: [] },
+  { id: "in803", nombre: "Electivo", semestre: 8, creditos: 6, prerreq: [] },
+  { id: "in804", nombre: "Electivo", semestre: 8, creditos: 6, prerreq: [] },
+
+  { id: "in901", nombre: "Dirección Estratégica", semestre: 9, creditos: 6, prerreq: ["in801"] },
+  { id: "in902", nombre: "Electivo", semestre: 9, creditos: 6, prerreq: [] },
+  { id: "in903", nombre: "Electivo", semestre: 9, creditos: 6, prerreq: [] },
+  { id: "in904", nombre: "Electivo", semestre: 9, creditos: 6, prerreq: [] },
+
+  { id: "in1001", nombre: "Taller de Título", semestre: 10, creditos: 12, prerreq: ["in901"] }
+];
+
+function cargarMalla() {
+  const mallaDiv = document.getElementById("malla");
+  mallaDiv.innerHTML = "";
+  let fila;
+  for (let i = 1; i <= 10; i++) {
+    if (i % 2 === 1) {
+      fila = document.createElement("div");
+      fila.className = "fila";
+      mallaDiv.appendChild(fila);
+    }
+    const col = document.createElement("div");
+    col.className = "semestre";
+    col.innerHTML = `<h2>${i}° Semestre</h2>`;
+    const cursosSem = cursos.filter(c => c.semestre === i);
+    cursosSem.forEach(curso => {
+      const div = document.createElement("div");
+      div.className = "ramo tooltip";
+      div.dataset.id = curso.id;
+      div.dataset.creditos = curso.creditos;
+      div.textContent = curso.nombre;
+      div.title = "";
+      div.onclick = () => toggleCurso(curso.id);
+      col.appendChild(div);
+    });
+    fila.appendChild(col);
+  }
+  actualizarEstado();
+}
+
+function toggleCurso(id) {
+  const aprobado = JSON.parse(localStorage.getItem("aprobados") || "[]");
+  const idx = aprobado.indexOf(id);
+  if (idx >= 0) {
+    aprobado.splice(idx, 1);
+  } else {
+    aprobado.push(id);
+  }
+  localStorage.setItem("aprobados", JSON.stringify(aprobado));
+  actualizarEstado();
+}
+
+function actualizarEstado() {
+  const aprobado = JSON.parse(localStorage.getItem("aprobados") || "[]");
+  let total = 0;
+  document.querySelectorAll(".ramo").forEach(div => {
+    const id = div.dataset.id;
+    const curso = cursos.find(c => c.id === id);
+    const requisitos = curso.prerreq;
+    div.classList.remove("aprobado", "bloqueado");
+    div.removeAttribute("data-tooltip");
+
+    const faltan = requisitos.filter(r => !aprobado.includes(r));
+    if (aprobado.includes(id)) {
+      div.classList.add("aprobado");
+      total += parseInt(div.dataset.creditos);
+    } else if (faltan.length) {
+      div.classList.add("bloqueado");
+      div.dataset.tooltip = "Faltan: " + faltan.map(f => cursos.find(c => c.id === f)?.nombre).join(", ");
+    }
+  });
+  document.getElementById("creditos").textContent = total;
+}
+
+cargarMalla();
+</script>
+</body>
+</html>
